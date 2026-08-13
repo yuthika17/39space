@@ -85,6 +85,20 @@ ipcMain.handle(
 
 
 ipcMain.handle(
+    "get-study-time",
+    (_, date) =>
+        database.getStudyTime(date)
+);
+
+
+ipcMain.handle(
+    "add-study-time",
+    (_, date, seconds) =>
+        database.addStudyTime(date, seconds)
+);
+
+
+ipcMain.handle(
     "get-dates",
     () =>
         database.getDates()

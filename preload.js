@@ -47,6 +47,19 @@ contextBridge.exposeInMainWorld(
                 id
             ),
 
+        getStudyTime: (date) =>
+            ipcRenderer.invoke(
+                "get-study-time",
+                date
+            ),
+
+        addStudyTime: (date, seconds) =>
+            ipcRenderer.invoke(
+                "add-study-time",
+                date,
+                seconds
+            ),
+
         getDates: () =>
             ipcRenderer.invoke(
                 "get-dates"

@@ -29,6 +29,11 @@ db.exec(`
         title TEXT NOT NULL,
         completed INTEGER NOT NULL DEFAULT 0
     );
+
+    CREATE TABLE IF NOT EXISTS study_time (
+        date TEXT PRIMARY KEY,
+        seconds INTEGER NOT NULL DEFAULT 0
+    );
 `);
 
 
@@ -118,6 +123,36 @@ function deleteTask(id) {
 
 
 // ============================
+// STUDY TIME
+// ============================
+
+function getStudyTime(date) {
+
+    const row = db
+        .prepare(`
+            SELECT seconds
+            FROM study_time
+            WHERE date = ?
+        `)
+        .get(date);
+
+    return row ? row.seconds : 0;
+}
+
+
+function addStudyTime(date, seconds) {
+
+    db.prepare(`
+        INSERT INTO study_time (date, seconds)
+        VALUES (?, ?)
+
+        ON CONFLICT(date)
+        DO UPDATE SET seconds = seconds + excluded.seconds
+    `).run(date, seconds);
+}
+
+
+// ============================
 // HISTORY
 // ============================
 
@@ -133,6 +168,12 @@ function getDates() {
         SELECT date
         FROM tasks
 
+        UNION
+
+        SELECT date
+        FROM study_time
+        WHERE seconds > 0
+
         ORDER BY date DESC
     `).all();
 }
@@ -145,5 +186,7 @@ module.exports = {
     addTask,
     updateTask,
     deleteTask,
+    getStudyTime,
+    addStudyTime,
     getDates
 };

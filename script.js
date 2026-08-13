@@ -8,8 +8,17 @@ let selectedDate =
 
 function formatDate(date) {
 
-    return date.toISOString()
-        .split("T")[0];
+    const year = date.getFullYear();
+
+    const month =
+        String(date.getMonth() + 1)
+            .padStart(2, "0");
+
+    const day =
+        String(date.getDate())
+            .padStart(2, "0");
+
+    return `${year}-${month}-${day}`;
 
 }
 
@@ -74,6 +83,49 @@ document
         "click",
         goToday
     );
+
+
+// ============================
+// AUTO-REFRESH TO TODAY
+// ============================
+
+let trackedToday =
+    formatDate(new Date());
+
+
+function checkDateChange() {
+
+    const now =
+        formatDate(new Date());
+
+
+    if (now === trackedToday) return;
+
+
+    const wasOnToday =
+        formatDate(selectedDate) === trackedToday;
+
+
+    trackedToday = now;
+
+
+    if (wasOnToday) {
+        goToday();
+    }
+
+}
+
+
+window.addEventListener(
+    "focus",
+    checkDateChange
+);
+
+
+setInterval(
+    checkDateChange,
+    60 * 1000
+);
 
 
 // ============================
@@ -293,13 +345,13 @@ function renderTasks(tasks) {
 
         taskList.innerHTML = `
             <div class="empty">
-                🌱 No tasks for this day yet.
+                No tasks for this day yet ∩(︶▽︶)∩ .
             </div>
         `;
 
         homeTasks.innerHTML = `
             <div class="empty">
-                No tasks yet 🌷
+                No tasks yet ∩(︶▽︶)∩ 
             </div>
         `;
 
@@ -511,6 +563,43 @@ function updateStats(tasks) {
 
 
 // ============================
+// STUDY TIME
+// ============================
+
+function formatStudyTime(seconds) {
+
+    const hours =
+        Math.floor(seconds / 3600);
+
+    const minutes =
+        Math.floor((seconds % 3600) / 60);
+
+    if (hours > 0) {
+        return `${hours}h ${minutes}m`;
+    }
+
+    return `${minutes}m`;
+
+}
+
+
+async function loadStudyTime(date) {
+
+    const seconds =
+        await window.studyApp.getStudyTime(
+            date
+        );
+
+
+    document.getElementById(
+        "studyTimeDisplay"
+    ).textContent =
+        formatStudyTime(seconds);
+
+}
+
+
+// ============================
 // HISTORY
 // ============================
 
@@ -533,7 +622,7 @@ async function loadHistory() {
 
         historyList.innerHTML = `
             <div class="empty">
-                🌱 Nothing here yet.
+                Nothing here yet ∩(︶▽︶)∩ .
             </div>
         `;
 
@@ -630,6 +719,8 @@ async function loadDay() {
 
     await loadTasks(date);
 
+    await loadStudyTime(date);
+
 }
 
 
@@ -722,6 +813,9 @@ let timerRunning =
 let timerInterval = null;
 
 
+let sessionSeconds = 0;
+
+
 const timerDisplay =
     document.getElementById(
         "timerDisplay"
@@ -758,6 +852,31 @@ function updateTimerDisplay() {
 }
 
 
+async function saveStudySession() {
+
+    if (sessionSeconds <= 0) return;
+
+
+    const today =
+        formatDate(new Date());
+
+
+    await window.studyApp.addStudyTime(
+        today,
+        sessionSeconds
+    );
+
+
+    sessionSeconds = 0;
+
+
+    if (formatDate(selectedDate) === today) {
+        loadStudyTime(today);
+    }
+
+}
+
+
 startButton.addEventListener(
     "click",
     () => {
@@ -774,6 +893,9 @@ startButton.addEventListener(
 
             startButton.textContent =
                 "▶ Start";
+
+
+            saveStudySession();
 
 
             return;
@@ -793,6 +915,8 @@ startButton.addEventListener(
                 () => {
 
                     timeLeft--;
+
+                    sessionSeconds++;
 
 
                     updateTimerDisplay();
@@ -815,8 +939,11 @@ startButton.addEventListener(
                             "▶ Start";
 
 
+                        saveStudySession();
+
+
                         alert(
-                            "🌸 Wonderful! You finished a focus session!"
+                            "🌸 Wonderful! You finished a focus session! (๑・ω-)～♥”  "
                         );
 
 
@@ -858,6 +985,9 @@ resetButton.addEventListener(
 
 
         updateTimerDisplay();
+
+
+        saveStudySession();
 
     }
 );
