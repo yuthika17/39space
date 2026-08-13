@@ -1,0 +1,16 @@
+{
+  "name": "my-study-app",
+  "version": "1.0.0",
+  "description": "A cute personal study desktop application",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "devDependencies": {
+    "@electron/rebuild": "^3.7.2",
+    "electron": "^37.0.0"
+  },
+  "dependencies": {
+    "better-sqlite3": "^12.11.1"
+  }
+}

@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>My Study Space</title>
+
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet"
+    >
+
+</head>
+
+
+<body>
+
+<div class="app">
+
+
+    <!-- SIDEBAR -->
+
+    <aside class="sidebar">
+
+        <div class="logo">
+
+            <div class="logo-flower">
+                🌸
+            </div>
+
+            <div>
+
+                <h2>Study Space</h2>
+
+                <span>
+                    my little corner
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <nav>
+
+            <button
+                class="nav-button active"
+                data-page="home"
+            >
+                🏠 Home
+            </button>
+
+
+            <button
+                class="nav-button"
+                data-page="tasks"
+            >
+                📚 Tasks
+            </button>
+
+
+            <button
+                class="nav-button"
+                data-page="notes"
+            >
+                📝 Notes
+            </button>
+
+
+            <button
+                class="nav-button"
+                data-page="history"
+            >
+                📖 History
+            </button>
+
+
+            <button
+                class="nav-button"
+                data-page="timer"
+            >
+                ⏱️ Focus Timer
+            </button>
+
+        </nav>
+
+
+        <div class="sidebar-bottom">
+
+            <button
+                id="themeButton"
+                class="small-button"
+            >
+                🌙 Dark mode
+            </button>
+
+            <div class="little-message">
+                ✨ You can do it!
+            </div>
+
+        </div>
+
+    </aside>
+
+
+
+    <!-- MAIN -->
+
+    <main class="main">
+
+
+        <!-- HOME -->
+
+        <section
+            id="home"
+            class="page active-page"
+        >
+
+            <div class="top-bar">
+
+                <div>
+
+                    <p class="small-text">
+                        Welcome back (づ｡◕‿‿◕｡)づ
+                    </p>
+
+                    <h1>
+                        Good afternoon（＾ω＾） !
+                    </h1>
+
+                </div>
+
+            </div>
+
+
+            <div class="date-selector">
+
+                <button id="previousDay">
+                    ←
+                </button>
+
+                <div>
+
+                    <span>
+                        Selected day
+                    </span>
+
+                    <strong id="selectedDate">
+                        —
+                    </strong>
+
+                </div>
+
+                <button id="nextDay">
+                    →
+                </button>
+
+                <button
+                    id="todayButton"
+                    class="today-button"
+                >
+                    Today
+                </button>
+
+            </div>
+
+
+            <div class="quote-card">
+
+                <div>
+
+                    <p class="quote">
+                        Small steps every day still
+                        take you somewhere.
+                    </p>
+
+                    <span class="quote-author">
+                        — your future self 🌸
+                    </span>
+
+                </div>
+
+                <div class="quote-flower">
+                    🌷
+                </div>
+
+            </div>
+
+
+            <div class="stats">
+
+                <div class="stat-card">
+
+                    <span>
+                        📚
+                    </span>
+
+                    <div>
+
+                        <p>
+                            Tasks
+                        </p>
+
+                        <strong id="taskCount">
+                            0
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <span>
+                        ✅
+                    </span>
+
+                    <div>
+
+                        <p>
+                            Completed
+                        </p>
+
+                        <strong id="completedCount">
+                            0
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <span>
+                        📝
+                    </span>
+
+                    <div>
+
+                        <p>
+                            Notes
+                        </p>
+
+                        <strong id="noteStatus">
+                            Empty
+                        </strong>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="section-title">
+
+                <h2>
+                    Today's tasks
+                </h2>
+
+            </div>
+
+
+            <div
+                id="homeTasks"
+                class="task-list"
+            ></div>
+
+
+            <div class="section-title">
+
+                <h2>
+                    Today's note
+                </h2>
+
+            </div>
+
+
+            <div
+                id="homeNote"
+                class="note-preview"
+            >
+                No note yet.
+            </div>
+
+        </section>
+
+
+
+        <!-- TASKS -->
+
+        <section
+            id="tasks"
+            class="page"
+        >
+
+            <div class="top-bar">
+
+                <div>
+
+                    <p class="small-text">
+                        Stay organized 🌱
+                    </p>
+
+                    <h1>
+                        Tasks
+                    </h1>
+
+                </div>
+
+            </div>
+
+
+            <div class="current-day-title">
+
+                📅
+                <span id="taskPageDate">
+                    —
+                </span>
+
+            </div>
+
+
+            <div class="task-input">
+
+                <input
+                    id="taskInput"
+                    type="text"
+                    placeholder="What do you need to do?"
+                >
+
+                <button id="addTask">
+                    + Add
+                </button>
+
+            </div>
+
+
+            <div
+                id="taskList"
+                class="task-list"
+            ></div>
+
+        </section>
+
+
+
+        <!-- NOTES -->
+
+        <section
+            id="notes"
+            class="page"
+        >
+
+            <div class="top-bar">
+
+                <div>
+
+                    <p class="small-text">
+                        Your little notebook 📖
+                    </p>
+
+                    <h1>
+                        Notes
+                    </h1>
+
+                </div>
+
+            </div>
+
+
+            <div class="current-day-title">
+
+                📅
+                <span id="notePageDate">
+                    —
+                </span>
+
+            </div>
+
+
+            <textarea
+                id="notesArea"
+                placeholder="Write what you learned today..."
+            ></textarea>
+
+
+            <p class="save-message">
+                ✨ Saved automatically
+            </p>
+
+        </section>
+
+
+
+        <!-- HISTORY -->
+
+        <section
+            id="history"
+            class="page"
+        >
+
+            <div class="top-bar">
+
+                <div>
+
+                    <p class="small-text">
+                        Your past days 📖
+                    </p>
+
+                    <h1>
+                        History
+                    </h1>
+
+                </div>
+
+            </div>
+
+
+            <div
+                id="historyList"
+                class="history-list"
+            ></div>
+
+        </section>
+
+
+
+        <!-- TIMER -->
+
+        <section
+            id="timer"
+            class="page"
+        >
+
+            <div class="top-bar">
+
+                <div>
+
+                    <p class="small-text">
+                        Take a deep breath 🌿
+                    </p>
+
+                    <h1>
+                        Focus Timer
+                    </h1>
+
+                </div>
+
+            </div>
+
+
+            <div class="timer-card">
+
+                <div class="timer-flower">
+                    🌸
+                </div>
+
+                <div id="timerDisplay">
+                    25:00
+                </div>
+
+                <p>
+                    Focus for a little while.
+                </p>
+
+
+                <div class="timer-buttons">
+
+                    <button id="startTimer">
+                        ▶ Start
+                    </button>
+
+                    <button id="resetTimer">
+                        ↻ Reset
+                    </button>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+    </main>
+
+</div>
+
+
+<script src="script.js"></script>
+
+</body>
+
+</html>
