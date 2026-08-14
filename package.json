@@ -8,7 +8,7 @@
     "dist": "electron-builder"
   },
   "build": {
-    "appId": "com.yourname.studyspace",
+    "appId": "com.yuthi.studyspace",
     "productName": "My Study Space",
     "files": [
       "**/*",
