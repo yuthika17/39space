@@ -17,8 +17,7 @@ A minimal desktop app for daily notes, tasks, and focus sessions built with Elec
 
 - [Electron](https://www.electronjs.org/)
 - [better-sqlite3](https://github.com/WiseLibs/better-sqlite3) for local storage
-- Vanilla HTML/CSS/JS — no frontend framework
-
+- Vanilla HTML/CSS/JS 
 ## Getting started
 
 ```bash
@@ -38,7 +37,7 @@ The AppImage will be generated in `dist/`.
 
 ## Data storage
 
-All data (notes, tasks, study time) is stored locally in a SQLite database under your OS's user data folder — nothing leaves your machine.
+All data (notes, tasks, study time) is stored locally in a SQLite database under your OS's user data folder
 
 ## License
 
