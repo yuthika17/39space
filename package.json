@@ -4,11 +4,26 @@
   "description": "A cute personal study desktop application",
   "main": "main.js",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "dist": "electron-builder"
+  },
+  "build": {
+    "appId": "com.yourname.studyspace",
+    "productName": "My Study Space",
+    "files": [
+      "**/*",
+      "!**/*.db",
+      "!**/*.db-wal",
+      "!**/*.db-shm"
+    ],
+    "linux": {
+      "target": "AppImage"
+    }
   },
   "devDependencies": {
     "@electron/rebuild": "^3.7.2",
-    "electron": "^37.0.0"
+    "electron": "^37.0.0",
+    "electron-builder": "^26.15.3"
   },
   "dependencies": {
     "better-sqlite3": "^12.11.1"

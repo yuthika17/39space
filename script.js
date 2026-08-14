@@ -643,7 +643,7 @@ async function loadHistory() {
 
 
         button.innerHTML = `
-            📅
+            
             <span>
                 ${formatPrettyDate(item.date)}
             </span>

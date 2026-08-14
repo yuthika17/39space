@@ -232,6 +232,13 @@ nav {
     margin-right: 10px;
 }
 
+.nav-button img {
+    width: 18px;
+    height: 18px;
+    margin-right: 10px;
+    vertical-align: middle;
+}
+
 .nav-button:hover {
     background: var(--miku-light);
 
