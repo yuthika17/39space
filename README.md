@@ -7,10 +7,25 @@ A minimal desktop app for daily notes, tasks, and focus sessions built with Elec
 ## Features
 
 - **Home** — daily overview: study time, task count, completed tasks, today's note
+
+  ![home](screenshots/home_39space.png)
+
 - **Tasks** — add, complete, and delete tasks per day
+
+  ![tasks](screenshots/39space_tasks.png)
+
 - **Notes** — autosaving notes per day
+
+  ![notes](screenshots/Notes_39space.png)
+
 - **History** — browse past days that have notes, tasks, or study time
+
+  ![history](screenshots/history.png)
+
 - **Focus Timer** — 25-minute focus sessions that log study time automatically
+  
+  ![timer](screenshots/timer_39space.png)
+
 - Light/dark mode
 
 ## Tech stack
