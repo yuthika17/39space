@@ -2,7 +2,7 @@
 
 A minimal desktop app for daily notes, tasks, and focus sessions built with Electron.
 
-![hehe](assets/miku3.png)
+   ![hehe](assets/miku3.png)
 
 ## Features
 
