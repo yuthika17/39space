@@ -18,6 +18,10 @@
     ],
     "linux": {
       "target": "AppImage"
+    },
+
+    "win": {
+    "target": "nsis"
     }
   },
   "devDependencies": {
