@@ -60,6 +60,8 @@ contextBridge.exposeInMainWorld(
                 seconds
             ),
 
+        getStatistics: () => ipcRenderer.invoke("get-statistics"),
+
         getDates: () =>
             ipcRenderer.invoke(
                 "get-dates"

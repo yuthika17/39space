@@ -88,6 +88,13 @@
             </button>
 
 
+            <button 
+                class="nav-button" 
+                data-page="statistics"
+            > 
+                <img src="./assets/icons/statistics.svg" alt=""> Statistics
+            </button>
+
             <button
                 class="nav-button"
                 data-page="timer"
@@ -433,6 +440,29 @@
         </section>
 
 
+
+        <!-- STATISTICS -->
+        <section id="statistics" class="page">
+            <div class="top-bar"><div><p class="small-text">Little steps add up ✨</p><h1>Statistics</h1></div></div>
+            <div class="progress-cards">
+                <div class="progress-card"><span>Focus time this week</span><strong id="totalFocus">0m</strong></div>
+                <div class="progress-card"><span>Active days</span><strong id="activeDays">0</strong></div>
+                <div class="progress-card"><span>Current streak</span><strong id="currentStreak">0 days</strong></div>
+                <div class="progress-card"><span>Tasks completed</span><strong id="taskProgress">0 / 0</strong></div>
+            </div>
+            <div class="progress-panel">
+                <h2>Activity calendar</h2>
+                <p class="progress-subtitle">Past 52 weeks · Hover to see daily details · Click to open the day</p>
+                <div id="activityCalendar" class="activity-calendar" aria-label="Study activity over the past year"></div>
+                <div class="activity-legend">Less <i class="activity-square level-0"></i><i class="activity-square level-1"></i><i class="activity-square level-2"></i><i class="activity-square level-3"></i><i class="activity-square level-4"></i> More</div>
+            </div>
+            <div class="progress-panel">
+                <h2>Focus time this week</h2>
+                <p class="progress-subtitle">Monday through Sunday · Current week</p>
+                <div id="weeklyChart" class="weekly-chart"></div>
+            </div>
+            <p id="statsEmpty" class="progress-subtitle"></p>
+        </section>
 
         <!-- TIMER -->
 

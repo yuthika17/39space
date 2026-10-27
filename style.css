@@ -312,12 +312,21 @@ nav {
    MAIN
    ========================= */
 
+
 .main {
     flex: 1;
-
     padding: 45px 55px;
-
     overflow-y: auto;
+    position: relative;
+    isolation: isolate;
+
+    background:
+        radial-gradient(
+            ellipse at center,
+            #052424 15%,
+            #193541 58%,
+            #065b61 100%
+        );
 }
 
 
@@ -1134,4 +1143,37 @@ body.dark .quote-card {
     .quick-grid {
         grid-template-columns: 1fr;
     }
+}
+/* Study progress dashboard */
+.progress-cards {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:22px}
+.progress-card,.progress-panel {background:var(--card);border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow)}
+.progress-card {padding:18px;display:flex;flex-direction:column;gap:10px}
+.progress-card span,.progress-subtitle {font-size:12px;color:var(--muted)}
+.progress-card strong {color:var(--navy);font-size:22px}
+.progress-panel {padding:23px;margin-bottom:22px;overflow:hidden}
+.progress-panel h2 {font-size:18px;color:var(--navy);margin-bottom:7px}
+.progress-subtitle {margin-bottom:17px}
+.activity-calendar {display:flex;gap:4px;overflow-x:auto;padding:5px 0 12px}
+.activity-week {display:flex;flex-direction:column;gap:4px;flex-shrink:0}
+.activity-square {width:13px;height:13px;border:0;border-radius:3px;display:inline-block;flex-shrink:0;padding:0;cursor:pointer}
+.activity-square:disabled {opacity:.25;cursor:default}
+.activity-square:not(:disabled):hover {outline:2px solid var(--miku-dark);outline-offset:1px}
+.level-0 {background:var(--border)}
+.level-1 {background:#b8edef}
+.level-2 {background:#7ddfe3}
+.level-3 {background:#39cbd3}
+.level-4 {background:#159ca5}
+.activity-legend {display:flex;align-items:center;justify-content:flex-end;gap:5px;color:var(--muted);font-size:11px;margin-top:10px}
+.weekly-chart {height:210px;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:15px;align-items:stretch}
+.weekly-day {min-width:0;display:flex;flex-direction:column;align-items:center;gap:8px;font-size:11px;color:var(--muted)}
+.weekly-track {flex:1;width:100%;max-width:55px;display:flex;align-items:flex-end;border-radius:8px;background:var(--miku-light);overflow:hidden}
+.weekly-bar {width:100%;background:var(--miku);border-radius:8px 8px 0 0;min-height:0}
+@media(max-width:1100px){.progress-cards {grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){.progress-cards {grid-template-columns:1fr 1fr}.progress-panel{padding:15px}.weekly-chart{gap:5px}}
+.main .top-bar h1 {
+    color: #e8ffff;
+}
+
+.main .top-bar .small-text {
+    color: #93dadd;
 }

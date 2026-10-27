@@ -59,6 +59,10 @@ function getNote(date) {
 
 
 function saveNote(date, content) {
+    if (!content || !content.trim()) {
+        db.prepare("DELETE FROM notes WHERE date = ?").run(date);
+        return;
+    }
 
     db.prepare(`
         INSERT INTO notes (date, content)
@@ -161,7 +165,7 @@ function getDates() {
     return db.prepare(`
         SELECT date
         FROM notes
-        WHERE content != ''
+        WHERE TRIM(content) != ''
 
         UNION
 
@@ -179,7 +183,29 @@ function getDates() {
 }
 
 
+// One row per active day; no new tables or migrations required.
+function getStatistics() {
+    return db.prepare(`
+        WITH dates AS (
+            SELECT date FROM notes WHERE TRIM(content) != ''
+            UNION
+            SELECT date FROM tasks
+            UNION
+            SELECT date FROM study_time WHERE seconds > 0
+        )
+        SELECT dates.date,
+               COALESCE((SELECT seconds FROM study_time s WHERE s.date = dates.date), 0) AS seconds,
+               (SELECT COUNT(*) FROM tasks t WHERE t.date = dates.date) AS tasks,
+               (SELECT COUNT(*) FROM tasks t WHERE t.date = dates.date AND t.completed = 1) AS completed,
+               CASE WHEN EXISTS (SELECT 1 FROM notes n WHERE n.date = dates.date AND TRIM(n.content) != '')
+                    THEN 1 ELSE 0 END AS hasNote
+        FROM dates
+        ORDER BY dates.date ASC
+    `).all();
+}
+
 module.exports = {
+    getStatistics,
     getNote,
     saveNote,
     getTasks,

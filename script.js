@@ -42,6 +42,7 @@ function formatPrettyDate(dateString) {
 
 
 function changeDay(amount) {
+    flushPendingNote();
 
     selectedDate.setDate(
         selectedDate.getDate() + amount
@@ -53,6 +54,7 @@ function changeDay(amount) {
 
 
 function goToday() {
+    flushPendingNote();
 
     selectedDate = new Date();
 
@@ -185,6 +187,9 @@ function openPage(pageName) {
     if (pageName === "history") {
         loadHistory();
     }
+    if (pageName === "statistics") {
+        loadStatistics();
+    }
 
 }
 
@@ -212,6 +217,14 @@ const notesArea =
 
 
 let noteSaveTimeout = null;
+let pendingNote = null;
+function flushPendingNote() {
+    if (!pendingNote) return;
+    clearTimeout(noteSaveTimeout);
+    const {date, content} = pendingNote;
+    pendingNote = null;
+    window.studyApp.saveNote(date, content);
+}
 
 
 async function loadNote(date) {
@@ -253,20 +266,14 @@ notesArea.addEventListener(
         );
 
 
+        pendingNote = {date: formatDate(selectedDate), content: notesArea.value};
         noteSaveTimeout =
             setTimeout(
                 async () => {
 
-                    const date =
-                        formatDate(
-                            selectedDate
-                        );
-
-
-                    await window.studyApp.saveNote(
-                        date,
-                        notesArea.value
-                    );
+                    const { date, content } = pendingNote;
+                    pendingNote = null;
+                    await window.studyApp.saveNote(date, content);
 
 
                     document.getElementById(
@@ -655,6 +662,7 @@ async function loadHistory() {
             "click",
             () => {
 
+                flushPendingNote();
                 selectedDate =
                     new Date(
                         item.date +
@@ -678,6 +686,104 @@ async function loadHistory() {
 
 }
 
+
+// ============================
+// STATISTICS
+// ============================
+
+function localDateDaysAgo(days) {
+    const date = new Date();
+    date.setHours(12, 0, 0, 0);
+    date.setDate(date.getDate() - days);
+    return date;
+}
+
+async function loadStatistics() {
+    const records = await window.studyApp.getStatistics();
+    const today = formatDate(new Date());
+    const visible = records.filter(row => row.date <= today);
+    const byDate = new Map(visible.map(row => [row.date, row]));
+    // Calendar week: Monday 00:00 through Sunday 23:59 (local time).
+    const weekStartDate = new Date();
+    weekStartDate.setHours(12, 0, 0, 0);
+    weekStartDate.setDate(weekStartDate.getDate() - ((weekStartDate.getDay() + 6) % 7));
+    const monday = formatDate(weekStartDate);
+    const totalSeconds = visible.filter(row => row.date >= monday)
+        .reduce((sum, row) => sum + row.seconds, 0);
+    const totalTasks = visible.reduce((sum, row) => sum + row.tasks, 0);
+    const completed = visible.reduce((sum, row) => sum + row.completed, 0);
+
+    document.getElementById("totalFocus").textContent = formatStudyTime(totalSeconds);
+    document.getElementById("activeDays").textContent = visible.length;
+    document.getElementById("taskProgress").textContent = `${completed} / ${totalTasks}`;
+    let dayOffset = byDate.has(today) ? 0 : 1;
+    let streak = 0;
+    while (byDate.has(formatDate(localDateDaysAgo(dayOffset)))) {
+        streak++;
+        dayOffset++;
+    }
+    document.getElementById("currentStreak").textContent = `${streak} day${streak === 1 ? "" : "s"}`;
+    document.getElementById("statsEmpty").textContent = visible.length ? "" : "Start a timer, write a note, or add a task to begin tracking your progress 🌸";
+
+    // 53 columns: full weeks, Sunday through Saturday, ending this week.
+    const calendar = document.getElementById("activityCalendar");
+    calendar.replaceChildren();
+    const end = localDateDaysAgo(0);
+    const weekStart = new Date(end);
+    weekStart.setDate(end.getDate() - end.getDay() - 52 * 7);
+    for (let week = 0; week < 53; week++) {
+        const column = document.createElement("div");
+        column.className = "activity-week";
+        for (let day = 0; day < 7; day++) {
+            const current = new Date(weekStart);
+            current.setDate(weekStart.getDate() + week * 7 + day);
+            const key = formatDate(current);
+            const row = byDate.get(key);
+            const square = document.createElement("button");
+            square.type = "button";
+            square.className = "activity-square";
+            const points = row ? row.seconds / 1800 + row.completed * 2 + row.tasks + row.hasNote : 0;
+            const level = points === 0 ? 0 : points < 2 ? 1 : points < 5 ? 2 : points < 9 ? 3 : 4;
+            square.classList.add(`level-${level}`);
+            square.disabled = key > today;
+            square.title = `${key}: ${row ? `${formatStudyTime(row.seconds)} focused, ${row.completed}/${row.tasks} tasks, ${row.hasNote ? "note" : "no note"}` : "No activity"}`;
+            square.setAttribute("aria-label", square.title);
+            square.addEventListener("click", () => {
+                flushPendingNote();
+                selectedDate = new Date(key + "T12:00:00");
+                loadDay();
+                openPage("home");
+            });
+            column.appendChild(square);
+        }
+        calendar.appendChild(column);
+    }
+
+    const weeklyChart = document.getElementById("weeklyChart");
+    weeklyChart.replaceChildren();
+    const weekData = Array.from({length: 7}, (_, index) => {
+        const date = new Date(weekStartDate);
+        date.setDate(date.getDate() + index);
+        return {date, seconds: byDate.get(formatDate(date))?.seconds || 0};
+    });
+    const maxSeconds = Math.max(3600, ...weekData.map(d => d.seconds));
+    for (const {date, seconds} of weekData) {
+        const item = document.createElement("div");
+        item.className = "weekly-day";
+        const value = document.createElement("span");
+        value.textContent = formatStudyTime(seconds);
+        const track = document.createElement("div");
+        track.className = "weekly-track";
+        const bar = document.createElement("div");
+        bar.className = "weekly-bar";
+        bar.style.height = `${seconds / maxSeconds * 100}%`;
+        track.appendChild(bar);
+        const label = document.createElement("span");
+        label.textContent = date.toLocaleDateString(undefined, {weekday: "short"});
+        item.append(value, track, label);
+        weeklyChart.appendChild(item);
+    }
+}
 
 // ============================
 // DAY LOADING

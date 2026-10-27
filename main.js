@@ -98,6 +98,8 @@ ipcMain.handle(
 );
 
 
+ipcMain.handle("get-statistics", () => database.getStatistics());
+
 ipcMain.handle(
     "get-dates",
     () =>
