@@ -38,15 +38,15 @@
         <div class="logo">
 
             <div class="logo-flower">
-                 <img src="./assets/miku3.png" alt="Miku">
+                 <img src="./assets/miku-happy.png" alt="Miku">
             </div>
 
             <div>
 
-                <h2>Study Space</h2>
+                <h2>My Study Space</h2>
 
                 <span>
-                    my little corner
+                    a cozy place to grow ✦
                 </span>
 
             </div>
@@ -88,13 +88,6 @@
             </button>
 
 
-            <button 
-                class="nav-button" 
-                data-page="statistics"
-            > 
-                <img src="./assets/icons/statistics.svg" alt=""> Statistics
-            </button>
-
             <button
                 class="nav-button"
                 data-page="timer"
@@ -102,6 +95,11 @@
                 <img src="./assets/icons/timer.svg" alt=""> Focus Timer
             </button>
 
+            <button class="nav-button"
+                    data-page="statistics"
+            >
+                 <img src="./assets/icons/statistics.svg" alt=""> Statistics
+            </button>
         </nav>
 
 
@@ -125,6 +123,7 @@
     <!-- MAIN -->
 
     <main class="main">
+        <div class="sky-overlay" aria-hidden="true"></div>
 
 
         <!-- HOME -->
@@ -151,6 +150,14 @@
             </div>
 
 
+            <div class="hero-area">
+                <div class="hero-copy"><p class="hero-kicker">✧ YOUR LITTLE CORNER OF THE UNIVERSE ✧</p><h2>Welcome back! <span>✧</span></h2><p>Let's make today productive, one little step at a time.</p></div>
+                <img class="hero-miku" src="./assets/miku-happy.png" alt="Happy Miku welcoming you">
+            </div>
+            <div class="home-overview">
+                <div class="glass-panel motivation-panel"><span class="moon-icon">☾</span><p>“A little progress every day adds up to big results.”</p><span class="quote-sparkle">♡ ✦</span></div>
+                <div class="glass-panel overview-panel"><h3>Today's Overview ✧</h3><div><span>☑</span> <b id="overviewTasks">0</b> tasks planned</div><div><span>◷</span> <b id="overviewFocus">0m</b> focus time</div><div><span>★</span> <b id="overviewDone">0</b> tasks completed</div></div>
+            </div>
             <div class="date-selector">
 
                 <button id="previousDay">
@@ -317,9 +324,7 @@
                         Stay organized <(￣︶￣)>
                     </p>
 
-                    <h1>
-                        Tasks
-                    </h1>
+                    <h1>My Tasks ✧</h1>
 
                 </div>
 
@@ -355,6 +360,7 @@
                 id="taskList"
                 class="task-list"
             ></div>
+            <img class="task-miku" src="./assets/miku-studying.png" alt="Miku studying next to books">
 
         </section>
 
@@ -443,25 +449,15 @@
 
         <!-- STATISTICS -->
         <section id="statistics" class="page">
-            <div class="top-bar"><div><p class="small-text">Little steps add up ✨</p><h1>Statistics</h1></div></div>
+            <div class="top-bar"><div><p class="small-text">See how far you've come ✧</p><h1>Your Statistics ✧</h1></div></div>
             <div class="progress-cards">
-                <div class="progress-card"><span>Focus time this week</span><strong id="totalFocus">0m</strong></div>
-                <div class="progress-card"><span>Active days</span><strong id="activeDays">0</strong></div>
-                <div class="progress-card"><span>Current streak</span><strong id="currentStreak">0 days</strong></div>
-                <div class="progress-card"><span>Tasks completed</span><strong id="taskProgress">0 / 0</strong></div>
+                <div class="progress-card"><span>◷ This week’s focus</span><strong id="totalFocus">0m</strong></div>
+                <div class="progress-card"><span>✦ Active days</span><strong id="activeDays">0</strong></div>
+                <div class="progress-card"><span>♨ Current streak</span><strong id="currentStreak">0 days</strong></div>
+                <div class="progress-card"><span>☑ Completed tasks</span><strong id="taskProgress">0 / 0</strong></div>
             </div>
-            <div class="progress-panel">
-                <h2>Activity calendar</h2>
-                <p class="progress-subtitle">Past 52 weeks · Hover to see daily details · Click to open the day</p>
-                <div id="activityCalendar" class="activity-calendar" aria-label="Study activity over the past year"></div>
-                <div class="activity-legend">Less <i class="activity-square level-0"></i><i class="activity-square level-1"></i><i class="activity-square level-2"></i><i class="activity-square level-3"></i><i class="activity-square level-4"></i> More</div>
-            </div>
-            <div class="progress-panel">
-                <h2>Focus time this week</h2>
-                <p class="progress-subtitle">Monday through Sunday · Current week</p>
-                <div id="weeklyChart" class="weekly-chart"></div>
-            </div>
-            <p id="statsEmpty" class="progress-subtitle"></p>
+            <div class="progress-panel"><h2>Your activity ✧</h2><p class="progress-subtitle">Past 52 weeks · Click a day to open it</p><div id="activityCalendar" class="activity-calendar"></div><div class="activity-legend">Less <i class="activity-square level-0"></i><i class="activity-square level-1"></i><i class="activity-square level-2"></i><i class="activity-square level-3"></i><i class="activity-square level-4"></i> More</div></div>
+            <div class="progress-panel"><h2>Focus this week ✧</h2><p class="progress-subtitle">Monday to Sunday</p><div id="weeklyChart" class="weekly-chart"></div></div><p id="statsEmpty" class="progress-subtitle"></p>
         </section>
 
         <!-- TIMER -->
@@ -479,16 +475,14 @@
                         Take a deep breath ∩(︶▽︶)∩
                     </p>
 
-                    <h1>
-                        Focus Timer
-                    </h1>
+                    <h1>Focus Timer ✧</h1>
 
                 </div>
 
             </div>
 
 
-            <div class="timer-card">
+            <div class="timer-layout"><div class="timer-card">
 
                 <div class="timer-flower">
                     <img
@@ -497,9 +491,33 @@
                     >
                 </div>
 
-                <div id="timerDisplay">
-                    25:00
-                </div>
+
+            <div class="timer-circle">
+                <svg class="timer-svg" viewBox="0 0 240 240">
+                    <!-- Background circle -->
+                    <circle
+                        class="timer-track"
+                        cx="120" cy="120" r="100"
+                    />
+
+                    <!-- Countdown progress -->
+                    <circle
+                        id="timerProgress"
+                        class="timer-progress"
+                        cx="120" cy="120" r="100"
+                    />
+
+                    <!-- Moving star -->
+                    <g id="timerStar">
+                        <path
+                            d="M0,-13 L4,-4 L13,0 L4,4 L0,13 L-4,4 L-13,0 L-4,-4 Z"
+                        />
+                    </g>
+                </svg>
+
+                <div id="timerDisplay">25:00</div>
+            </div>
+
 
                 <p>
                     Focus for a little while.
@@ -518,7 +536,7 @@
 
                 </div>
 
-            </div>
+            </div><img class="hanging-miku" src="./assets/miku-hanging.png" alt="Miku hanging upside down"></div>
 
         </section>
 

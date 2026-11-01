@@ -41,20 +41,18 @@ function formatPrettyDate(dateString) {
 }
 
 
-function changeDay(amount) {
-    flushPendingNote();
+async function changeDay(amount) {
+    await flushPendingNote();
 
-    selectedDate.setDate(
-        selectedDate.getDate() + amount
-    );
+    selectedDate.setDate(selectedDate.getDate() + amount);
 
     loadDay();
 
 }
 
 
-function goToday() {
-    flushPendingNote();
+async function goToday() {
+    await flushPendingNote();
 
     selectedDate = new Date();
 
@@ -146,7 +144,8 @@ const pages =
     );
 
 
-function openPage(pageName) {
+async function openPage(pageName) {
+    await flushPendingNote();
 
     pages.forEach(page => {
 
@@ -218,86 +217,46 @@ const notesArea =
 
 let noteSaveTimeout = null;
 let pendingNote = null;
-function flushPendingNote() {
-    if (!pendingNote) return;
-    clearTimeout(noteSaveTimeout);
-    const {date, content} = pendingNote;
-    pendingNote = null;
-    window.studyApp.saveNote(date, content);
+let noteWriteQueue = Promise.resolve();
+
+function renderNote(content) {
+    const nonempty = content.trim().length > 0;
+    document.getElementById("noteStatus").textContent = nonempty ? "Saved" : "Empty";
+    document.getElementById("homeNote").textContent = nonempty ? content : "No note yet.";
 }
 
+function saveNoteInOrder(note) {
+    noteWriteQueue = noteWriteQueue.catch(console.error).then(() =>
+        window.studyApp.saveNote(note.date, note.content)
+    );
+    return noteWriteQueue;
+}
+
+async function flushPendingNote() {
+    clearTimeout(noteSaveTimeout);
+    const note = pendingNote;
+    pendingNote = null;
+    if (note) await saveNoteInOrder(note);
+    await noteWriteQueue;
+}
 
 async function loadNote(date) {
-
-    const note =
-        await window.studyApp.getNote(
-            date
-        );
-
-
-    notesArea.value =
-        note.content;
-
-
-    document.getElementById(
-        "noteStatus"
-    ).textContent =
-        note.content.trim()
-            ? "Saved"
-            : "Empty";
-
-
-    document.getElementById(
-        "homeNote"
-    ).textContent =
-        note.content.trim()
-            ? note.content
-            : "No note yet.";
-
+    const note = await window.studyApp.getNote(date);
+    if (date !== formatDate(selectedDate)) return;
+    notesArea.value = note.content || "";
+    renderNote(notesArea.value);
 }
 
-
-notesArea.addEventListener(
-    "input",
-    () => {
-
-        clearTimeout(
-            noteSaveTimeout
-        );
-
-
-        pendingNote = {date: formatDate(selectedDate), content: notesArea.value};
-        noteSaveTimeout =
-            setTimeout(
-                async () => {
-
-                    const { date, content } = pendingNote;
-                    pendingNote = null;
-                    await window.studyApp.saveNote(date, content);
-
-
-                    document.getElementById(
-                        "noteStatus"
-                    ).textContent =
-                        notesArea.value.trim()
-                            ? "Saved"
-                            : "Empty";
-
-
-                    document.getElementById(
-                        "homeNote"
-                    ).textContent =
-                        notesArea.value.trim()
-                            ? notesArea.value
-                            : "No note yet.";
-
-                },
-                400
-            );
-
-    }
-);
-
+notesArea.addEventListener("input", () => {
+    clearTimeout(noteSaveTimeout);
+    pendingNote = {date: formatDate(selectedDate), content: notesArea.value};
+    renderNote(notesArea.value);
+    noteSaveTimeout = setTimeout(() => {
+        const note = pendingNote;
+        pendingNote = null;
+        if (note) saveNoteInOrder(note).catch(console.error);
+    }, 400);
+});
 
 // ============================
 // TASKS
@@ -557,6 +516,8 @@ function updateStats(tasks) {
         "taskCount"
     ).textContent =
         tasks.length;
+    document.getElementById("overviewTasks").textContent = tasks.length;
+    document.getElementById("overviewDone").textContent = tasks.filter(task => task.completed).length;
 
 
     document.getElementById(
@@ -602,6 +563,7 @@ async function loadStudyTime(date) {
         "studyTimeDisplay"
     ).textContent =
         formatStudyTime(seconds);
+    document.getElementById("overviewFocus").textContent = formatStudyTime(seconds);
 
 }
 
@@ -660,9 +622,9 @@ async function loadHistory() {
 
         button.addEventListener(
             "click",
-            () => {
+            async () => {
 
-                flushPendingNote();
+                await flushPendingNote();
                 selectedDate =
                     new Date(
                         item.date +
@@ -690,98 +652,54 @@ async function loadHistory() {
 // ============================
 // STATISTICS
 // ============================
-
-function localDateDaysAgo(days) {
-    const date = new Date();
-    date.setHours(12, 0, 0, 0);
-    date.setDate(date.getDate() - days);
-    return date;
+function statsDate(daysAgo) {
+    const d = new Date(); d.setHours(12,0,0,0); d.setDate(d.getDate() - daysAgo); return d;
 }
-
 async function loadStatistics() {
     const records = await window.studyApp.getStatistics();
     const today = formatDate(new Date());
-    const visible = records.filter(row => row.date <= today);
-    const byDate = new Map(visible.map(row => [row.date, row]));
-    // Calendar week: Monday 00:00 through Sunday 23:59 (local time).
-    const weekStartDate = new Date();
-    weekStartDate.setHours(12, 0, 0, 0);
-    weekStartDate.setDate(weekStartDate.getDate() - ((weekStartDate.getDay() + 6) % 7));
-    const monday = formatDate(weekStartDate);
-    const totalSeconds = visible.filter(row => row.date >= monday)
-        .reduce((sum, row) => sum + row.seconds, 0);
-    const totalTasks = visible.reduce((sum, row) => sum + row.tasks, 0);
-    const completed = visible.reduce((sum, row) => sum + row.completed, 0);
-
-    document.getElementById("totalFocus").textContent = formatStudyTime(totalSeconds);
-    document.getElementById("activeDays").textContent = visible.length;
+    const byDate = new Map(records.filter(r => r.date <= today).map(r => [r.date, r]));
+    const start = statsDate(0);
+    start.setDate(start.getDate() - ((start.getDay() + 6) % 7));
+    const monday = formatDate(start);
+    const all = [...byDate.values()];
+    const weekSeconds = all.filter(r => r.date >= monday).reduce((n,r) => n+r.seconds,0);
+    document.getElementById("totalFocus").textContent = formatStudyTime(weekSeconds);
+    document.getElementById("activeDays").textContent = byDate.size;
+    const totalTasks = all.reduce((n,r) => n+r.tasks,0);
+    const completed = all.reduce((n,r) => n+r.completed,0);
     document.getElementById("taskProgress").textContent = `${completed} / ${totalTasks}`;
-    let dayOffset = byDate.has(today) ? 0 : 1;
-    let streak = 0;
-    while (byDate.has(formatDate(localDateDaysAgo(dayOffset)))) {
-        streak++;
-        dayOffset++;
-    }
+    let offset = byDate.has(today) ? 0 : 1, streak = 0;
+    while(byDate.has(formatDate(statsDate(offset)))) { streak++; offset++; }
     document.getElementById("currentStreak").textContent = `${streak} day${streak === 1 ? "" : "s"}`;
-    document.getElementById("statsEmpty").textContent = visible.length ? "" : "Start a timer, write a note, or add a task to begin tracking your progress 🌸";
-
-    // 53 columns: full weeks, Sunday through Saturday, ending this week.
-    const calendar = document.getElementById("activityCalendar");
-    calendar.replaceChildren();
-    const end = localDateDaysAgo(0);
-    const weekStart = new Date(end);
-    weekStart.setDate(end.getDate() - end.getDay() - 52 * 7);
-    for (let week = 0; week < 53; week++) {
-        const column = document.createElement("div");
-        column.className = "activity-week";
-        for (let day = 0; day < 7; day++) {
-            const current = new Date(weekStart);
-            current.setDate(weekStart.getDate() + week * 7 + day);
-            const key = formatDate(current);
-            const row = byDate.get(key);
-            const square = document.createElement("button");
-            square.type = "button";
-            square.className = "activity-square";
-            const points = row ? row.seconds / 1800 + row.completed * 2 + row.tasks + row.hasNote : 0;
-            const level = points === 0 ? 0 : points < 2 ? 1 : points < 5 ? 2 : points < 9 ? 3 : 4;
-            square.classList.add(`level-${level}`);
-            square.disabled = key > today;
-            square.title = `${key}: ${row ? `${formatStudyTime(row.seconds)} focused, ${row.completed}/${row.tasks} tasks, ${row.hasNote ? "note" : "no note"}` : "No activity"}`;
-            square.setAttribute("aria-label", square.title);
-            square.addEventListener("click", () => {
-                flushPendingNote();
-                selectedDate = new Date(key + "T12:00:00");
-                loadDay();
-                openPage("home");
-            });
+    document.getElementById("statsEmpty").textContent = all.length ? "" : "Add a task, note or study time to start tracking your progress ✦";
+    const calendar = document.getElementById("activityCalendar"); calendar.replaceChildren();
+    const first = statsDate(0); first.setDate(first.getDate() - first.getDay() - 52*7);
+    for(let week = 0;week < 53;week++) {
+        const column = document.createElement("div"); column.className="activity-week";
+        for(let day=0;day<7;day++) {
+            const d=new Date(first); d.setDate(first.getDate()+week*7+day);
+            const key=formatDate(d),row=byDate.get(key),points=row?(row.seconds/1800+row.completed*2+row.tasks+row.hasNote):0;
+            const level=points===0?0:points<2?1:points<5?2:points<9?3:4;
+            const square=document.createElement("button"); square.type="button";
+            square.className=`activity-square level-${level}`;square.disabled=key>today;
+            square.title=`${key}: ${row?`${formatStudyTime(row.seconds)}, ${row.completed}/${row.tasks} tasks, ${row.hasNote?"note":"no note"}`:"No activity"}`;
+            square.setAttribute("aria-label",square.title);
+            square.addEventListener("click",async()=>{await flushPendingNote();selectedDate=new Date(key+"T12:00:00");await loadDay();openPage("home");});
             column.appendChild(square);
         }
         calendar.appendChild(column);
     }
-
-    const weeklyChart = document.getElementById("weeklyChart");
-    weeklyChart.replaceChildren();
-    const weekData = Array.from({length: 7}, (_, index) => {
-        const date = new Date(weekStartDate);
-        date.setDate(date.getDate() + index);
-        return {date, seconds: byDate.get(formatDate(date))?.seconds || 0};
-    });
-    const maxSeconds = Math.max(3600, ...weekData.map(d => d.seconds));
-    for (const {date, seconds} of weekData) {
-        const item = document.createElement("div");
-        item.className = "weekly-day";
-        const value = document.createElement("span");
-        value.textContent = formatStudyTime(seconds);
-        const track = document.createElement("div");
-        track.className = "weekly-track";
-        const bar = document.createElement("div");
-        bar.className = "weekly-bar";
-        bar.style.height = `${seconds / maxSeconds * 100}%`;
-        track.appendChild(bar);
-        const label = document.createElement("span");
-        label.textContent = date.toLocaleDateString(undefined, {weekday: "short"});
-        item.append(value, track, label);
-        weeklyChart.appendChild(item);
+    const chart=document.getElementById("weeklyChart");chart.replaceChildren();
+    const week=Array.from({length:7},(_,i)=>{const d=new Date(start);d.setDate(d.getDate()+i);return {d,seconds:byDate.get(formatDate(d))?.seconds||0};});
+    const max=Math.max(3600,...week.map(v=>v.seconds));
+    for (const {d,seconds} of week){
+       const col=document.createElement("div");col.className="weekly-day";
+       const value=document.createElement("span");value.textContent=formatStudyTime(seconds);
+       const track=document.createElement("div");track.className="weekly-track";
+       const bar=document.createElement("div");bar.className="weekly-bar";bar.style.height=`${seconds/max*100}%`;track.append(bar);
+       const label=document.createElement("span");label.textContent=d.toLocaleDateString(undefined,{weekday:"short"});
+       col.append(value,track,label);chart.append(col);
     }
 }
 
@@ -790,6 +708,7 @@ async function loadStatistics() {
 // ============================
 
 async function loadDay() {
+    await flushPendingNote();
 
     const date =
         formatDate(
@@ -905,202 +824,129 @@ updateTheme();
 
 
 // ============================
-// TIMER
+// TIMER — uses real wall-clock elapsed time
 // ============================
-
-let timeLeft =
-    25 * 60;
-
-
-let timerRunning =
-    false;
-
-
+const FOCUS_DURATION = 25 * 60;
+let timeLeft = FOCUS_DURATION;
+let timerRunning = false;
 let timerInterval = null;
-
-
+let timerStartedAt = 0;
+let timerStartedWith = FOCUS_DURATION;
 let sessionSeconds = 0;
-
-
-const timerDisplay =
-    document.getElementById(
-        "timerDisplay"
-    );
-
-
-const startButton =
-    document.getElementById(
-        "startTimer"
-    );
-
-
-const resetButton =
-    document.getElementById(
-        "resetTimer"
-    );
-
+let sessionWriteQueue = Promise.resolve();
+const timerDisplay = document.getElementById("timerDisplay");
+const startButton = document.getElementById("startTimer");
+const resetButton = document.getElementById("resetTimer");
 
 function updateTimerDisplay() {
-
-    const minutes =
-        Math.floor(
-            timeLeft / 60
-        );
-
-
-    const seconds =
-        timeLeft % 60;
-
+    const seconds = Math.max(0, Math.ceil(timeLeft));
+    const minutes = Math.floor(seconds / 60);
 
     timerDisplay.textContent =
-        `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+        `${String(minutes).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
 
-}
-
-
-async function saveStudySession() {
-
-    if (sessionSeconds <= 0) return;
-
-
-    const today =
-        formatDate(new Date());
-
-
-    await window.studyApp.addStudyTime(
-        today,
-        sessionSeconds
+    // Progress from 1 (full) to 0 (empty)
+    const progress = Math.max(
+        0,
+        Math.min(1, timeLeft / FOCUS_DURATION)
     );
 
+    const radius = 100;
+    const circumference = 2 * Math.PI * radius;
 
-    sessionSeconds = 0;
+    const circle = document.getElementById("timerProgress");
 
+    circle.style.strokeDasharray = circumference;
+    circle.style.strokeDashoffset =
+        circumference * (1 - progress);
 
-    if (formatDate(selectedDate) === today) {
-        loadStudyTime(today);
-    }
+    // Position the star at the end of the progress line
+    const angle = (-90 + 360 * progress) * Math.PI / 180;
 
+    const starX = 120 + radius * Math.cos(angle);
+    const starY = 120 + radius * Math.sin(angle);
+
+    document.getElementById("timerStar")
+        .setAttribute(
+            "transform",
+            `translate(${starX}, ${starY})`
+        );
 }
 
 
-startButton.addEventListener(
-    "click",
-    () => {
+function captureElapsed() {
+    if (!timerRunning) return;
+    const elapsed = Math.min(timerStartedWith, Math.max(0, (Date.now() - timerStartedAt) / 1000));
+    timeLeft = Math.max(0, timerStartedWith - elapsed);
+    updateTimerDisplay();
+}
 
-        if (timerRunning) {
+function stopRunningTimer() {
+    if (!timerRunning) return;
+    captureElapsed();
+    const elapsed = Math.max(0, timerStartedWith - timeLeft);
+    sessionSeconds += elapsed;
+    timerRunning = false;
+    clearInterval(timerInterval);
+    timerInterval = null;
+    timerStartedAt = 0;
+    startButton.textContent = "▶ Start";
+}
 
-            clearInterval(
-                timerInterval
-            );
+function saveStudySession() {
+    const wholeSeconds = Math.floor(sessionSeconds);
+    if (!wholeSeconds) return sessionWriteQueue;
+    sessionSeconds -= wholeSeconds;
+    const date = formatDate(new Date());
+    sessionWriteQueue = sessionWriteQueue.catch(console.error).then(async () => {
+        await window.studyApp.addStudyTime(date, wholeSeconds);
+        if (formatDate(selectedDate) === date) await loadStudyTime(date);
+    });
+    return sessionWriteQueue;
+}
 
+function finishTimer() {
+    stopRunningTimer();
+    saveStudySession().catch(console.error);
+    timeLeft = FOCUS_DURATION;
+    updateTimerDisplay();
+    alert("🌸 Wonderful! You finished a focus session!");
+}
 
-            timerRunning = false;
+function updateTimer() {
+    if (!timerRunning) return;
+    captureElapsed();
+    if (timeLeft <= 0) finishTimer();
+}
 
-
-            startButton.textContent =
-                "▶ Start";
-
-
-            saveStudySession();
-
-
-            return;
-
-        }
-
-
+startButton.addEventListener("click", () => {
+    if (timerRunning) {
+        updateTimer();
+        if (!timerRunning) return;
+        stopRunningTimer();
+        saveStudySession().catch(console.error);
+    } else {
         timerRunning = true;
-
-
-        startButton.textContent =
-            "⏸ Pause";
-
-
-        timerInterval =
-            setInterval(
-                () => {
-
-                    timeLeft--;
-
-                    sessionSeconds++;
-
-
-                    updateTimerDisplay();
-
-
-                    if (
-                        timeLeft <= 0
-                    ) {
-
-                        clearInterval(
-                            timerInterval
-                        );
-
-
-                        timerRunning =
-                            false;
-
-
-                        startButton.textContent =
-                            "▶ Start";
-
-
-                        saveStudySession();
-
-
-                        alert(
-                            "🌸 Wonderful! You finished a focus session! (๑・ω-)～♥”  "
-                        );
-
-
-                        timeLeft =
-                            25 * 60;
-
-
-                        updateTimerDisplay();
-
-                    }
-
-                },
-                1000
-            );
-
-    }
-);
-
-
-resetButton.addEventListener(
-    "click",
-    () => {
-
-        clearInterval(
-            timerInterval
-        );
-
-
-        timerRunning =
-            false;
-
-
-        timeLeft =
-            25 * 60;
-
-
-        startButton.textContent =
-            "▶ Start";
-
-
+        timerStartedAt = Date.now();
+        timerStartedWith = timeLeft;
+        startButton.textContent = "⏸ Pause";
+        timerInterval = setInterval(updateTimer, 250);
         updateTimerDisplay();
-
-
-        saveStudySession();
-
     }
-);
+});
 
+resetButton.addEventListener("click", () => {
+    stopRunningTimer();
+    saveStudySession().catch(console.error);
+    timeLeft = FOCUS_DURATION;
+    updateTimerDisplay();
+});
 
+document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) updateTimer();
+});
+window.addEventListener("focus", updateTimer);
 updateTimerDisplay();
-
 
 // ============================
 // START
